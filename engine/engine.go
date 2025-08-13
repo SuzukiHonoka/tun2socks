@@ -145,6 +145,10 @@ func general(k *Key) error {
 		}
 		tunnel.T().SetUDPTimeout(k.UDPTimeout)
 	}
+
+	if k.UDPDisabled {
+		tunnel.T().SetUDPDisabled(true)
+	}
 	return nil
 }
 
