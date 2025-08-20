@@ -1,6 +1,6 @@
 module github.com/SuzukiHonoka/tun2socks/v2
 
-go 1.24
+go 1.25
 
 require (
 	github.com/docker/go-units v0.5.0
@@ -21,7 +21,7 @@ require (
 	golang.org/x/time v0.12.0
 	golang.zx2c4.com/wireguard v0.0.0-20250521234502-f333402bd9cb
 	gopkg.in/yaml.v3 v3.0.1
-	gvisor.dev/gvisor v0.0.0-20250807194038-c9af560a03d9
+	gvisor.dev/gvisor v0.0.0-20250819173305-54457539cbe5
 )
 
 require (
