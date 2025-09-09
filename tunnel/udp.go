@@ -36,7 +36,7 @@ func (t *Tunnel) handleUDPConn(uc adapter.UDPConn) {
 
 	// Check if UDP is disabled in the tunnel configuration
 	if t.udpDisabled.Load() {
-		log.Warnf("[UDP] dial %s:%s : blocked", metadata.DstIP, metadata.DstPort)
+		log.Warnf("[UDP] dial %s : blocked", metadata.DestinationAddress())
 		return
 	}
 
