@@ -1,4 +1,4 @@
-module github.com/xjasonlyu/tun2socks/v2
+module github.com/SuzukiHonoka/tun2socks/v2
 
 go 1.25
 
@@ -15,12 +15,12 @@ require (
 	github.com/stretchr/testify v1.9.0
 	go.uber.org/atomic v1.11.0
 	go.uber.org/zap v1.27.0
-	golang.org/x/crypto v0.41.0
-	golang.org/x/sys v0.35.0
-	golang.org/x/time v0.12.0
+	golang.org/x/crypto v0.42.0
+	golang.org/x/sys v0.36.0
+	golang.org/x/time v0.13.0
 	golang.zx2c4.com/wireguard v0.0.0-20250521234502-f333402bd9cb
 	gopkg.in/yaml.v3 v3.0.1
-	gvisor.dev/gvisor v0.0.0-20250828211149-1f30edfbb5d4
+	gvisor.dev/gvisor v0.0.0-20250905165804-6658538a7fec
 )
 
 require (

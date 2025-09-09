@@ -7,8 +7,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/xjasonlyu/tun2socks/v2/dialer"
-	"github.com/xjasonlyu/tun2socks/v2/log"
+	"github.com/SuzukiHonoka/tun2socks/v2/dialer"
+	"github.com/SuzukiHonoka/tun2socks/v2/log"
 )
 
 var (
