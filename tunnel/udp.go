@@ -8,6 +8,7 @@ import (
 
 	"github.com/xjasonlyu/tun2socks/v2/buffer"
 	"github.com/xjasonlyu/tun2socks/v2/core/adapter"
+	"github.com/xjasonlyu/tun2socks/v2/dns"
 	"github.com/xjasonlyu/tun2socks/v2/log"
 	M "github.com/xjasonlyu/tun2socks/v2/metadata"
 	"github.com/xjasonlyu/tun2socks/v2/tunnel/statistic"
@@ -17,11 +18,6 @@ import (
 func (t *Tunnel) handleUDPConn(uc adapter.UDPConn) {
 	defer uc.Close()
 
-	if t.udpDisabled.Load() {
-		log.Warnf("[UDP] dial %s: blocked", uc.ID().RemoteAddress)
-		return
-	}
-
 	id := uc.ID()
 	metadata := &M.Metadata{
 		Network: M.UDP,
@@ -29,6 +25,19 @@ func (t *Tunnel) handleUDPConn(uc adapter.UDPConn) {
 		SrcPort: id.RemotePort,
 		DstIP:   parseTCPIPAddress(id.LocalAddress),
 		DstPort: id.LocalPort,
+	}
+
+	// Check if this is a DNS request and DNS hijacking is enabled
+	if dns.IsDNSRequest(metadata.DstPort) && dns.IsDNSEnabled() {
+		log.Infof("[DNS-UDP] intercepting DNS request %s -> %s", id.LocalAddress, id.RemoteAddress)
+		t.handleDNSUDP(uc)
+		return
+	}
+
+	// Check if UDP is disabled in the tunnel configuration
+	if t.udpDisabled.Load() {
+		log.Warnf("[UDP] dial %s:%s : blocked", metadata.DstIP, metadata.DstPort)
+		return
 	}
 
 	pc, err := t.Dialer().DialUDP(metadata)
@@ -116,5 +125,41 @@ func (pc *symmetricNATPacketConn) ReadFrom(p []byte) (int, net.Addr, error) {
 		}
 
 		return n, from, err
+	}
+}
+
+// handleDNSUDP handles DNS queries over UDP
+func (t *Tunnel) handleDNSUDP(uc adapter.UDPConn) {
+	// DNS over UDP needs to handle multiple queries over the same session
+	// Each query is a single request-response cycle, but multiple queries can come
+	// over the same UDP "connection" within the session timeout
+
+	buf := buffer.Get(buffer.MaxSegmentSize)
+	defer buffer.Put(buf)
+
+	timeout := t.udpTimeout.Load()
+
+	for {
+		// Set read timeout for each DNS query
+		uc.SetReadDeadline(time.Now().Add(timeout))
+
+		n, from, err := uc.ReadFrom(buf)
+		if err != nil {
+			if netErr, ok := err.(net.Error); ok && netErr.Timeout() {
+				log.Debugf("[DNS-UDP] session timeout, closing DNS connection")
+				return // Normal timeout, end the session
+			}
+			log.Debugf("[DNS-UDP] read from client error: %v", err)
+			return
+		}
+
+		// Forward each DNS query - this handles the complete request-response cycle
+		if err := dns.ForwardDNSOverUDP(uc, from, buf[:n]); err != nil {
+			log.Warnf("[DNS-UDP] failed to forward DNS query: %v", err)
+			// Continue to handle next query even if this one failed
+		}
+
+		// Continue listening for more DNS queries in this session
+		// The session will end when timeout is reached or connection is closed
 	}
 }

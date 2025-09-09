@@ -7,7 +7,6 @@ import (
 	"os/signal"
 	"syscall"
 
-	"go.uber.org/automaxprocs/maxprocs"
 	"gopkg.in/yaml.v3"
 
 	_ "github.com/xjasonlyu/tun2socks/v2/dns"
@@ -40,13 +39,12 @@ func init() {
 	flag.StringVar(&key.MulticastGroups, "multicast-groups", "", "Set multicast groups, separated by commas")
 	flag.StringVar(&key.TUNPreUp, "tun-pre-up", "", "Execute a command before TUN device setup")
 	flag.StringVar(&key.TUNPostUp, "tun-post-up", "", "Execute a command after TUN device setup")
+	flag.StringVar(&key.DNSAddr, "dns-addr", "", "DNS server address for hijacking (enables DNS hijacking when set)")
 	flag.BoolVar(&versionFlag, "version", false, "Show version and then quit")
 	flag.Parse()
 }
 
 func main() {
-	maxprocs.Set(maxprocs.Logger(func(string, ...any) {}))
-
 	if versionFlag {
 		fmt.Println(version.String())
 		fmt.Println(version.BuildString())
