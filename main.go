@@ -40,6 +40,7 @@ func init() {
 	flag.StringVar(&key.TUNPreUp, "tun-pre-up", "", "Execute a command before TUN device setup")
 	flag.StringVar(&key.TUNPostUp, "tun-post-up", "", "Execute a command after TUN device setup")
 	flag.BoolVarP(&versionFlag, "version", "v", false, "Show version and then quit")
+	flag.StringVar(&key.DNSAddr, "dns-addr", "", "DNS server address for hijacking (enables DNS hijacking when set)")
 	flag.Parse()
 }
 
