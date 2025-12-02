@@ -18,11 +18,6 @@ import (
 func (t *Tunnel) handleUDPConn(uc adapter.UDPConn) {
 	defer uc.Close()
 
-	if t.udpDisabled.Load() {
-		log.Warnf("[UDP] dial %s: blocked", uc.ID().RemoteAddress)
-		return
-	}
-
 	id := uc.ID()
 	metadata := &M.Metadata{
 		Network: M.UDP,
@@ -36,6 +31,11 @@ func (t *Tunnel) handleUDPConn(uc adapter.UDPConn) {
 	if dns.IsDNSRequest(metadata.DstPort) && dns.IsDNSEnabled() {
 		log.Infof("[DNS-UDP] intercepting DNS request %s -> %s", metadata.SourceAddress(), metadata.DestinationAddress())
 		t.handleDNSUDP(uc, metadata)
+		return
+	}
+
+	if t.udpDisabled.Load() {
+		log.Warnf("[UDP] dial %s: blocked", uc.ID().RemoteAddress)
 		return
 	}
 
