@@ -1,6 +1,7 @@
 package tunnel
 
 import (
+	"errors"
 	"io"
 	"net"
 	"sync"
@@ -17,11 +18,6 @@ import (
 // TODO: Port Restricted NAT support.
 func (t *Tunnel) handleUDPConn(uc adapter.UDPConn) {
 	defer uc.Close()
-
-	if t.udpDisabled.Load() {
-		log.Warnf("[UDP] dial %s: blocked", uc.ID().RemoteAddress)
-		return
-	}
 
 	id := uc.ID()
 	metadata := &M.Metadata{
@@ -149,7 +145,7 @@ func (t *Tunnel) handleDNSUDP(uc adapter.UDPConn, metadata *M.Metadata) {
 
 		n, from, err := uc.ReadFrom(buf)
 		if err != nil {
-			if netErr, ok := err.(net.Error); ok && netErr.Timeout() {
+			if netErr, ok := errors.AsType[net.Error](err); ok && netErr.Timeout() {
 				log.Debugf("[DNS-UDP] session timeout, closing DNS connection")
 				return // Normal timeout, end the session
 			}
